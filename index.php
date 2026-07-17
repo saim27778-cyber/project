@@ -1,4 +1,367 @@
-<?php get_header(); ?>
+
+<!DOCTYPE html>
+<html <?php language_attributes(); ?>>
+
+<head>
+
+<meta charset="<?php bloginfo('charset'); ?>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<?php wp_head(); ?>
+
+
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- CSS RESET & VARIABLES FOR THIS HEADER ONLY --- */
+        .tx-bkg-header-wrapper {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            --tx-yellow: #ffc107;
+            --tx-black: #111111;
+            --tx-dark-gray: #1a1a1a;
+            --tx-white: #ffffff;
+            --tx-transition: all 0.3s ease;
+        }
+
+        /* --- STICKY HEADER CONTAINER --- */
+        .tx-bkg-header-main {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 9999;
+            background-color: var(--tx-black);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-bottom: 3px solid var(--tx-yellow);
+            padding: 15px 0;
+            transition: var(--tx-transition);
+        }
+
+        /* Container to align items */
+        .tx-bkg-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* --- LOGO STYLE --- */
+        .tx-bkg-logo-area a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .tx-bkg-logo-icon {
+            color: var(--tx-yellow);
+            font-size: 24px;
+        }
+
+        .tx-bkg-logo-text {
+            color: var(--tx-white);
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .tx-bkg-logo-text span {
+            color: var(--tx-yellow);
+        }
+
+        /* --- NAVIGATION MENU --- */
+        .tx-bkg-nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 25px;
+        }
+
+        .tx-bkg-nav-item a {
+            color: #cccccc;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: var(--tx-transition);
+            position: relative;
+            padding: 5px 0;
+        }
+
+        /* Hover Effect */
+        .tx-bkg-nav-item a:hover,
+        .tx-bkg-nav-item.active a {
+            color: var(--tx-yellow);
+        }
+
+        .tx-bkg-nav-item a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--tx-yellow);
+            transition: var(--tx-transition);
+        }
+
+        .tx-bkg-nav-item a:hover::after,
+        .tx-bkg-nav-item.active a::after {
+            width: 100%;
+        }
+
+        /* --- AUTH BUTTONS --- */
+        .tx-bkg-auth-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tx-bkg-btn {
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 22px;
+            border-radius: 5px;
+            transition: var(--tx-transition);
+            cursor: pointer;
+        }
+
+        .tx-bkg-btn-login {
+            color: var(--tx-white);
+            background: transparent;
+            border: 1px solid transparent;
+        }
+
+        .tx-bkg-btn-login:hover {
+            color: var(--tx-yellow);
+        }
+
+        .tx-bkg-btn-register {
+            color: var(--tx-black);
+            background-color: var(--tx-yellow);
+            border: 1px solid var(--tx-yellow);
+            box-shadow: 0 4px 10px rgba(255, 193, 7, 0.2);
+        }
+
+        .tx-bkg-btn-register:hover {
+            background-color: transparent;
+            color: var(--tx-yellow);
+        }
+
+        /* --- HAMBURGER MENU BUTTON --- */
+        .tx-bkg-hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 24px;
+            height: 18px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            z-index: 10001;
+        }
+
+        .tx-bkg-hamburger span {
+            width: 100%;
+            height: 2.5px;
+            background-color: var(--tx-white);
+            transition: var(--tx-transition);
+            transform-origin: left;
+        }
+
+        /* Hamburger Animation to 'X' */
+        .tx-bkg-hamburger.open span:first-child {
+            transform: rotate(45deg);
+            background-color: var(--tx-yellow);
+        }
+
+        .tx-bkg-hamburger.open span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .tx-bkg-hamburger.open span:last-child {
+            transform: rotate(-45deg);
+            background-color: var(--tx-yellow);
+        }
+
+        /* --- RESPONSIVE MEDIA QUERY (MOBILE & TABLET) --- */
+        @media (max-width: 991px) {
+            .tx-bkg-hamburger {
+                display: flex;
+            }
+
+            .tx-bkg-nav-menu {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 280px;
+                height: 100vh;
+                background-color: var(--tx-dark-gray);
+                flex-direction: column;
+                padding: 100px 30px 30px 30px;
+                gap: 20px;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+                transition: right 0.4s ease-in-out;
+                z-index: 10000;
+            }
+
+            .tx-bkg-nav-menu.open {
+                right: 0;
+            }
+
+            .tx-bkg-nav-item a {
+                font-size: 18px;
+                display: block;
+                padding: 10px 0;
+            }
+
+            .tx-bkg-auth-actions {
+                margin-right: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tx-bkg-auth-actions {
+                display: none; /* Mobile par buttons hide ho kar menu me add kiye ja sakte hain */
+            }
+            
+            /* Mobile ke liye menu ke andar buttons display karne ka option */
+            .tx-bkg-nav-menu .tx-bkg-mobile-auth {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 20px;
+                border-top: 1px solid #333;
+                padding-top: 20px;
+            }
+        }
+
+        /* Dummy class to prevent menu buttons showing on desktop */
+        .tx-bkg-nav-menu .tx-bkg-mobile-auth {
+            display: none;
+        }
+        @media (max-width: 480px) {
+            .tx-bkg-nav-menu .tx-bkg-mobile-auth {
+                display: flex;
+            }
+        }
+
+        /* For demo page content spacing */
+        .tx-bkg-dummy-content {
+            margin-top: 120px;
+            padding: 20px;
+            color: #333;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="tx-bkg-header-wrapper">
+    <header class="tx-bkg-header-main">
+        <div class="tx-bkg-container">
+            
+            <div class="tx-bkg-logo-area">
+                <a href="#">
+                    <i class="fa-solid fa-taxi tx-bkg-logo-icon"></i>
+                    <span class="tx-bkg-logo-text">City<span>Cab</span></span>
+                </a>
+            </div>
+
+            <nav>
+                <ul class="tx-bkg-nav-menu" id="txNavMenu">
+                    <li class="tx-bkg-nav-item active"><a href="barfii/#">Home</a></li>
+                    <li class="tx-bkg-nav-item"><a href="/barfii/book-ride/">Book Ride</a></li>
+                    <li class="tx-bkg-nav-item"><a href="/barfii/drivers/">Drivers</a></li>
+                    <li class="tx-bkg-nav-item"><a href="/barfii/companies/">Taxi Companies</a></li>
+                   <li class="tx-bkg-nav-item"><a href="/barfii/about-us/">About Us</a></li>  
+
+                    <li class="tx-bkg-nav-item"><a href="/barfii/contact-2/">Contact</a></li>
+                    
+                    <div class="tx-bkg-mobile-auth">
+                        <a href="#" class="tx-bkg-btn tx-bkg-btn-login" style="text-align: center;">Login</a>
+                        <a href="#" class="tx-bkg-btn tx-bkg-btn-register" style="text-align: center;">Register</a>
+                    </div>
+                </ul>
+            </nav>
+
+            <div class="tx-bkg-auth-actions">
+                <a href="#" class="tx-bkg-btn tx-bkg-btn-login">Login</a>
+                <a href="#" class="tx-bkg-btn tx-bkg-btn-register">Register</a>
+            </div>
+
+            <button class="tx-bkg-hamburger" id="txHamburgerBtn" aria-label="Toggle Navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+        </div>
+    </header>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const hamburgerBtn = document.getElementById('txHamburgerBtn');
+        const navMenu = document.getElementById('txNavMenu');
+        const navLinks = document.querySelectorAll('.tx-bkg-nav-item a');
+
+        // Toggle Menu on Hamburger Click
+        hamburgerBtn.addEventListener('click', function() {
+            hamburgerBtn.classList.toggle('open');
+            navMenu.classList.toggle('open');
+        });
+
+        // Close Menu when any link is clicked (Mobile View)
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                hamburgerBtn.classList.remove('open');
+                navMenu.classList.remove('remove');
+                
+                // Active Class Switch logic
+                document.querySelector('.tx-bkg-nav-item.active').classList.remove('active');
+                this.parentElement.classList.add('active');
+                
+                if(navMenu.classList.contains('open')) {
+                    navMenu.classList.remove('open');
+                    hamburgerBtn.classList.remove('open');
+                }
+            });
+        });
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -1920,5 +2283,337 @@
 
 
 
+    <style>
+        /* --- CSS RESET & VARIABLES FOR THIS FOOTER ONLY --- */
+        .tx-ftr-section-wrapper {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            --tx-ftr-yellow: #ffc107;
+            --tx-ftr-black: #111111;
+            --tx-ftr-dark: #1a1a1a;
+            --tx-ftr-text-gray: #aaaaaa;
+            --tx-ftr-white: #ffffff;
+            --tx-ftr-transition: all 0.3s ease;
+            
+            background-color: var(--tx-ftr-black);
+            color: var(--tx-ftr-white);
+            border-top: 4px solid var(--tx-ftr-yellow);
+            padding-top: 60px;
+        }
 
-<?php get_footer(); ?>
+        /* Container alignment */
+        .tx-ftr-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* --- MAIN GRID LAYOUT --- */
+        .tx-ftr-main-grid {
+            display: block; /* Backup */
+        }
+        
+        /* Flex/Block combo safe for printing and cross-browser grid behavior without generic naming */
+        @media (min-width: 768px) {
+            .tx-ftr-main-grid {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                gap: 30px;
+            }
+        }
+
+        .tx-ftr-column {
+            flex: 1;
+            min-width: 220px;
+            margin-bottom: 30px;
+        }
+
+        /* Special width for about column if needed */
+        .tx-ftr-col-about {
+            flex: 1.5;
+            min-width: 260px;
+        }
+
+        /* --- COLUMN WIDGETS STYLING --- */
+        .tx-ftr-logo-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        .tx-ftr-logo-icon {
+            color: var(--tx-ftr-yellow);
+            font-size: 26px;
+        }
+
+        .tx-ftr-logo-text {
+            color: var(--tx-ftr-white);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .tx-ftr-logo-text span {
+            color: var(--tx-ftr-yellow);
+        }
+
+        .tx-ftr-about-text {
+            color: var(--tx-ftr-text-gray);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        /* Heading styles for columns */
+        .tx-ftr-heading {
+            color: var(--tx-ftr-white);
+            font-size: 18px;
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 12px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tx-ftr-heading::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 3px;
+            background-color: var(--tx-ftr-yellow);
+            border-radius: 2px;
+        }
+
+        /* --- LINKS & LISTS --- */
+        .tx-ftr-links-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .tx-ftr-link-item {
+            margin-bottom: 12px;
+        }
+
+        .tx-ftr-link-item a {
+            color: var(--tx-ftr-text-gray);
+            text-decoration: none;
+            font-size: 14px;
+            transition: var(--tx-ftr-transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tx-ftr-link-item a i {
+            font-size: 11px;
+            color: var(--tx-ftr-yellow);
+            transition: var(--tx-ftr-transition);
+        }
+
+        /* Hover Link Animation */
+        .tx-ftr-link-item a:hover {
+            color: var(--tx-ftr-yellow);
+            padding-left: 5px;
+        }
+
+        /* --- CONTACT INFO STYLE --- */
+        .tx-ftr-contact-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .tx-ftr-contact-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            color: var(--tx-ftr-text-gray);
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .tx-ftr-contact-item i {
+            color: var(--tx-ftr-yellow);
+            font-size: 16px;
+            margin-top: 3px;
+        }
+
+        .tx-ftr-contact-item span a {
+            color: var(--tx-ftr-text-gray);
+            text-decoration: none;
+            transition: var(--tx-ftr-transition);
+        }
+
+        .tx-ftr-contact-item span a:hover {
+            color: var(--tx-ftr-yellow);
+        }
+
+        /* --- SOCIAL MEDIA ICONS --- */
+        .tx-ftr-social-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .tx-ftr-social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            background-color: var(--tx-ftr-dark);
+            color: var(--tx-ftr-white);
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+            border: 1px solid #252525;
+            transition: var(--tx-ftr-transition);
+        }
+
+        .tx-ftr-social-btn:hover {
+            background-color: var(--tx-ftr-yellow);
+            color: var(--tx-ftr-black);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        /* --- BOTTOM COPYRIGHT BAR --- */
+        .tx-ftr-bottom-bar {
+            background-color: #0a0a0a;
+            padding: 20px 0;
+            margin-top: 40px;
+            border-top: 1px solid #222222;
+        }
+
+        .tx-ftr-bottom-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .tx-ftr-bottom-container {
+                flex-direction: row;
+            }
+        }
+
+        .tx-ftr-copy-text {
+            color: #777777;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .tx-ftr-bottom-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .tx-ftr-bottom-links a {
+            color: #777777;
+            text-decoration: none;
+            font-size: 13px;
+            transition: var(--tx-ftr-transition);
+        }
+
+        .tx-ftr-bottom-links a:hover {
+            color: var(--tx-ftr-yellow);
+        }
+    </style>
+
+
+    <footer class="tx-ftr-section-wrapper">
+        <div class="tx-ftr-container">
+            
+            <div class="tx-ftr-main-grid">
+                
+                <div class="tx-ftr-column tx-ftr-col-about">
+                    <a href="#" class="tx-ftr-logo-area">
+                        <i class="fa-solid fa-taxi tx-ftr-logo-icon"></i>
+                        <span class="tx-ftr-logo-text">City<span>Cab</span></span>
+                    </a>
+                    <p class="tx-ftr-about-text">
+                        Your trusted on-demand taxi marketplace. Connecting professional drivers with riders instantly. Safe, fast, and completely reliable urban transport solution.
+                    </p>
+                    <div class="tx-ftr-social-container">
+                        <a href="#" class="tx-ftr-social-btn" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="tx-ftr-social-btn" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+                        <a href="#" class="tx-ftr-social-btn" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="#" class="tx-ftr-social-btn" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div class="tx-ftr-column">
+                    <h4 class="tx-ftr-heading">Quick Links</h4>
+                    <ul class="tx-ftr-links-list">
+                        <li class="tx-ftr-link-item"><a href="#"><i class="fa-solid fa-chevron-right"></i> Home</a></li>
+                        <li class="tx-ftr-link-item"><a href="#"><i class="fa-solid fa-chevron-right"></i> Book A Ride</a></li>
+                        <li class="tx-ftr-link-item"><a href="#"><i class="fa-solid fa-chevron-right"></i> Our Drivers</a></li>
+                        <li class="tx-ftr-link-item"><a href="#"><i class="fa-solid fa-chevron-right"></i> Fleet Showcase</a></li>
+                        <li class="tx-ftr-link-item"><a href="#"><i class="fa-solid fa-chevron-right"></i> Contact Us</a></li>
+                    </ul>
+                </div>
+
+                <div class="tx-ftr-column">
+                    <h4 class="tx-ftr-heading">Marketplace Services</h4>
+                    <ul class="tx-ftr-links-list">
+                        <li class="tx-ftr-link-item"><a href="#"><i class="fa-solid fa-chevron-right"></i> City Transport</a></li>
+                        <li class="tx-ftr-link-item"><a href="#"><i class="fa-solid fa-chevron-right"></i> Airport Transfers</a></li>
+                        <li class="tx-ftr-link-item"><a href="#"><i class="fa-solid fa-chevron-right"></i> Business Travels</a></li>
+                        <li class="tx-ftr-link-item"><a href="#"><i class="fa-solid fa-chevron-right"></i> Taxi Companies</a></li>
+                        <li class="tx-ftr-link-item"><a href="#"><i class="fa-solid fa-chevron-right"></i> Corporate Accounts</a></li>
+                    </ul>
+                </div>
+
+                <div class="tx-ftr-column">
+                    <h4 class="tx-ftr-heading">Contact Info</h4>
+                    <ul class="tx-ftr-contact-list">
+                        <li class="tx-ftr-contact-item">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <span>123 Taxi Main Boulevard, Suite 456, City Center, NY</span>
+                        </li>
+                        <li class="tx-ftr-contact-item">
+                            <i class="fa-solid fa-phone"></i>
+                            <span><a href="tel:+1234567890">+1 (234) 567-890</a></span>
+                        </li>
+                        <li class="tx-ftr-contact-item">
+                            <i class="fa-solid fa-envelope"></i>
+                            <span><a href="mailto:support@citycab.com">support@citycab.com</a></span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="tx-ftr-bottom-bar">
+            <div class="tx-ftr-container tx-ftr-bottom-container">
+                <p class="tx-ftr-copy-text">
+                    &copy; 2026 CityCab Marketplace. All Rights Reserved. Designed for Premium Standards.
+                </p>
+                <div class="tx-ftr-bottom-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+<?php wp_footer(); ?>
+
+</body>
+</html>

@@ -1,1 +1,644 @@
 
+<?php
+/*
+Template Name: Book A Ride
+*/
+get_header();
+
+// ==========================================
+// BACK-END: RIDE BOOKING PROCESSING ENGINE
+// ==========================================
+$booking_success = false;
+$booking_error = false;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['execute_ride_dispatch'])) {
+    
+    // 1. Security Check (WordPress Nonce Verification)
+    if (!isset($_POST['taxi_booking_nonce_field']) || !wp_verify_nonce($_POST['taxi_booking_nonce_field'], 'action_taxi_booking')) {
+        $booking_error = "Security validation failed. Please refresh and try again.";
+    } else {
+        
+        // 2. Data Sanitization (Form inputs ko saaf aur secure karna)
+        $pickup       = sanitize_text_field($_POST['pickup_loc']);
+        $dropoff      = sanitize_text_field($_POST['drop_loc']);
+        $fleet_class  = sanitize_text_field($_POST['fleet_class']);
+        $pickup_date  = sanitize_text_field($_POST['pickup_date']);
+        $pickup_time  = sanitize_text_field($_POST['pickup_time']);
+        $client_name  = sanitize_text_field($_POST['client_name']);
+        $client_phone = sanitize_text_field($_POST['client_phone']);
+        $instructions = sanitize_textarea_field($_POST['instructions']);
+        
+        // 3. Admin Email Fetch System (Aapko is email par booking aayegi)
+        $to = get_option('admin_email'); 
+        $subject = "🚨 New Urgent Ride Request - From: " . $client_name;
+        
+        // 4. Elegant HTML Email Template Setup
+        $body = "
+        <div style='font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px;'>
+            <h2 style='background: #1a202c; color: #ffc107; padding: 15px; margin-top: 0; text-align: center; border-radius: 6px 6px 0 0;'>New Ride Dispatch Order</h2>
+            <div style='padding: 15px; background: #fff;'>
+                <p><strong>Passenger Name:</strong> {$client_name}</p>
+                <p><strong>Contact Number:</strong> {$client_phone}</p>
+                <hr style='border: none; border-top: 1px solid #eee;'>
+                <p><strong>📍 Pickup Address:</strong> {$pickup}</p>
+                <p><strong>🏁 Drop-off Destination:</strong> {$dropoff}</p>
+                <p><strong>🚗 Fleet Vehicle Class:</strong> " . strtoupper($fleet_class) . "</p>
+                <p><strong>📅 Date & Time:</strong> {$pickup_date} at {$pickup_time}</p>
+                <hr style='border: none; border-top: 1px solid #eee;'>
+                <p><strong>📝 Special Notes:</strong><br>" . nl2br($instructions) . "</p>
+            </div>
+            <p style='font-size: 11px; color: #777; text-align: center; margin-top: 15px;'>This booking was automatically processed by your website dispatch terminal engine.</p>
+        </div>
+        ";
+        
+        $headers = array('Content-Type: text/html; charset=UTF-8');
+        
+        // 5. Execute WordPress Core Mail Function
+        $mail_sent = wp_mail($to, $subject, $body, $headers);
+        
+        if ($mail_sent) {
+            $booking_success = true;
+        } else {
+            $booking_error = "Server mail subsystem failed. Please contact support or call directly.";
+        }
+    }
+}
+?>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="booking-engine-wrapper">
+    <div class="booking-grid-container">
+        
+        <div class="booking-form-panel">
+            <div class="booking-flow-header">
+                <span class="step-badge">Secure Dispatch v2.4</span>
+                <h2>Book Your Ride Instantly</h2>
+                <p>Fill out your transit metrics below to calculate instant competitive fleet fares.</p>
+            </div>
+
+            <?php if ($booking_success) : ?>
+                <div class="alert-box alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>Reservation Confirmed!</strong><br>
+                        Your ride request has been dispatched to our fleet operators. We will contact you shortly.
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($booking_error) : ?>
+                <div class="alert-box alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Booking Interrupted!</strong><br>
+                        <?php echo $booking_error; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <form action="" method="POST" class="main-dispatch-form">
+                
+                <?php wp_nonce_field('action_taxi_booking', 'taxi_booking_nonce_field'); ?>
+                
+                <div class="form-section-block">
+                    <h4 class="section-title"><i class="fas fa-map-marked-alt"></i> 1. Route Specifications</h4>
+                    
+                    <div class="input-field-group">
+                        <label>Pickup Location Address</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-dot-circle pickup-icon"></i>
+                            <input type="text" name="pickup_loc" placeholder="Enter departure address, airport, terminal..." required>
+                        </div>
+                    </div>
+
+                    <div class="input-field-group">
+                        <label>Drop-off Destination</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fas fa-map-marker-alt drop-icon"></i>
+                            <input type="text" name="drop_loc" placeholder="Enter target arrival address or building..." required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-block">
+                    <h4 class="section-title"><i class="fas fa-car"></i> 2. Fleet Category Selection</h4>
+                    <div class="fleet-selection-matrix">
+                        
+                        <label class="fleet-matrix-option">
+                            <input type="radio" name="fleet_class" value="eco" checked>
+                            <div class="option-card-inner">
+                                <div class="fleet-icon bg-green"><i class="fas fa-leaf"></i></div>
+                                <div class="fleet-meta">
+                                    <h5>Eco Standard</h5>
+                                    <p>Prius, Aqua or Civic</p>
+                                </div>
+                                <div class="fleet-price-estimation">Est: $4.50+</div>
+                            </div>
+                        </label>
+
+                        <label class="fleet-matrix-option">
+                            <input type="radio" name="fleet_class" value="business">
+                            <div class="option-card-inner">
+                                <div class="fleet-icon bg-dark"><i class="fas fa-briefcase"></i></div>
+                                <div class="fleet-meta">
+                                    <h5>Business VIP</h5>
+                                    <p>Mercedes E-Class, BMW</p>
+                                </div>
+                                <div class="fleet-price-estimation">Est: $15.00+</div>
+                            </div>
+                        </label>
+
+                        <label class="fleet-matrix-option">
+                            <input type="radio" name="fleet_class" value="suv">
+                            <div class="option-card-inner">
+                                <div class="fleet-icon bg-amber"><i class="fas fa-shuttle-van"></i></div>
+                                <div class="fleet-meta">
+                                    <h5>Suv / Minivan</h5>
+                                    <p>Land Cruiser, V8, Hiace</p>
+                                </div>
+                                <div class="fleet-price-estimation">Est: $9.00+</div>
+                            </div>
+                        </label>
+
+                    </div>
+                </div>
+
+                <div class="form-section-block">
+                    <h4 class="section-title"><i class="fas fa-clock"></i> 3. Date & Time Scheduling</h4>
+                    <div class="form-grid-split">
+                        <div class="input-field-group">
+                            <label>Pickup Date</label>
+                            <input type="date" name="pickup_date" required>
+                        </div>
+                        <div class="input-field-group">
+                            <label>Pickup Time</label>
+                            <input type="time" name="pickup_time" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-block">
+                    <h4 class="section-title"><i class="fas fa-user-shield"></i> 4. Passenger Information</h4>
+                    <div class="form-grid-split">
+                        <div class="input-field-group">
+                            <label>Full Name</label>
+                            <input type="text" name="client_name" placeholder="John Doe" required>
+                        </div>
+                        <div class="input-field-group">
+                            <label>Mobile Number (For Dispatch SMS)</label>
+                            <input type="tel" name="client_phone" placeholder="+92 300 1234567" required>
+                        </div>
+                    </div>
+                    <div class="input-field-group">
+                        <label>Special Instructions / Flight Number / Baggage Requirements</label>
+                        <textarea name="instructions" rows="3" placeholder="Add any specific requirements for your chauffeur..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" name="execute_ride_dispatch" class="execute-booking-btn">
+                    <span>Confirm Ride Reservation</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+
+            </form>
+        </div>
+
+        <div class="booking-sidebar-panel">
+            
+            <div class="summary-sticky-card">
+                <h3>Reservation Summary</h3>
+                <hr class="summary-divider">
+                
+                <div class="summary-data-row">
+                    <span class="label-text">Service Type</span>
+                    <span class="value-text type-badge">Point-to-Point Transit</span>
+                </div>
+                
+                <div class="summary-data-row">
+                    <span class="label-text">Base Operations</span>
+                    <span class="value-text">24/7 Monitored Dispatch</span>
+                </div>
+                
+                <div class="summary-data-row highlight-row">
+                    <span class="label-text">Estimated Price</span>
+                    <span class="value-text price-main">Calculating...</span>
+                </div>
+
+                <div class="guarantee-notice">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Final balance will dynamically synchronize based on precise highway toll charges and accurate GPS tracking meters.</p>
+                </div>
+            </div>
+
+            <div class="trust-features-stack">
+                <div class="trust-feature-item">
+                    <div class="trust-icon-box"><i class="fas fa-user-check"></i></div>
+                    <div class="trust-text">
+                        <h5>Background-Checked Chauffeurs</h5>
+                        <p>All active terminal drivers undergo strict criminal verification profiles.</p>
+                    </div>
+                </div>
+
+                <div class="trust-feature-item">
+                    <div class="trust-icon-box"><i class="fas fa-clock"></i></div>
+                    <div class="trust-text">
+                        <h5>Flight Tracking System</h5>
+                        <p>We actively cross-reference delay metrics so operators adapt seamlessly.</p>
+                    </div>
+                </div>
+
+                <div class="trust-feature-item">
+                    <div class="trust-icon-box"><i class="fas fa-ban"></i></div>
+                    <div class="trust-text">
+                        <h5>Zero Cancellation Surcharges</h5>
+                        <p>Revoke operations penalty-free up to 3 hours prior to departure window frames.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<style>
+:root {
+    --brand-amber: #ffc107;
+    --brand-amber-hover: #e0a800;
+    --premium-dark: #1a202c;
+    --panel-border: #e2e8f0;
+    --text-primary: #2d3748;
+    --text-muted: #718096;
+    --soft-bg: #f7fafc;
+}
+
+body {
+    background-color: #f3f4f6;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.booking-engine-wrapper {
+    padding: 60px 0;
+    max-width: 1200px;
+    margin: auto;
+    width: 92%;
+}
+
+.booking-grid-container {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+/* Notification UI Alerts */
+.alert-box {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 25px;
+    line-height: 1.4;
+}
+.alert-box i { font-size: 22px; }
+.alert-success { background: #def7ec; color: #03543f; border: 1px solid #b3f5d4; }
+.alert-danger { background: #fde8e8; color: #9b1c1c; border: 1px solid #fabdbe; }
+
+/* Form Panel UI Structure */
+.booking-form-panel {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px;
+    border: 1px solid var(--panel-border);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+}
+
+.booking-flow-header {
+    margin-bottom: 35px;
+}
+
+.step-badge {
+    background: #fff3cd;
+    color: #856404;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    margin-bottom: 12px;
+}
+
+.booking-flow-header h2 {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--premium-dark);
+    margin: 0 0 8px 0;
+}
+
+.booking-flow-header p {
+    color: var(--text-muted);
+    font-size: 15px;
+    margin: 0;
+}
+
+.form-section-block {
+    margin-bottom: 35px;
+    padding-bottom: 25px;
+    border-bottom: 1px dashed var(--panel-border);
+}
+
+.form-section-block:last-of-type {
+    border-bottom: none;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--premium-dark);
+    margin: 0 0 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.section-title i {
+    color: var(--brand-amber);
+    margin-right: 8px;
+}
+
+/* Modern Inputs Mechanics */
+.input-field-group {
+    margin-bottom: 18px;
+}
+
+.input-field-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.input-icon-wrapper {
+    position: relative;
+}
+
+.input-icon-wrapper input {
+    width: 100%;
+    padding: 14px 16px 14px 45px;
+    border: 1px solid #cbd5e0;
+    border-radius: 10px;
+    background: #fafafa;
+    font-size: 14px;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.input-icon-wrapper input:focus, .form-grid-split input:focus, .input-field-group textarea:focus {
+    outline: none;
+    border-color: var(--brand-amber);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.15);
+}
+
+.input-icon-wrapper i {
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    transform: translateY(-50%);
+    font-size: 16px;
+}
+
+.pickup-icon { color: #2ecc71; }
+.drop-icon { color: #e74c3c; }
+
+.form-grid-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-grid-split input, .input-field-group textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #cbd5e0;
+    border-radius: 10px;
+    background: #fafafa;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: all 0.2s;
+}
+
+/* Radio Choice Fleet Cards Matrix */
+.fleet-selection-matrix {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.fleet-matrix-option {
+    display: block;
+    cursor: pointer;
+}
+
+.fleet-matrix-option input[type="radio"] {
+    display: none;
+}
+
+.option-card-inner {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+
+.fleet-matrix-option input[type="radio"]:checked + .option-card-inner {
+    border-color: var(--brand-amber);
+    background: rgba(255, 193, 7, 0.03);
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.1);
+}
+
+.fleet-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-right: 15px;
+}
+.bg-green { background: #e8f8f0; color: #2ecc71; }
+.bg-dark { background: #1a202c; color: #fff; }
+.bg-amber { background: #fff8e1; color: #ffb300; }
+
+.fleet-meta {
+    flex-grow: 1;
+}
+
+.fleet-meta h5 {
+    margin: 0 0 2px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--premium-dark);
+}
+
+.fleet-meta p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.fleet-price-estimation {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--premium-dark);
+    background: #f1f5f9;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.fleet-matrix-option input[type="radio"]:checked + .option-card-inner .fleet-price-estimation {
+    background: var(--brand-amber);
+    color: #000;
+}
+
+/* Master Form CTA Trigger */
+.execute-booking-btn {
+    width: 100%;
+    background: var(--premium-dark);
+    color: #fff;
+    border: none;
+    padding: 18px;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s;
+    margin-top: 15px;
+}
+
+.execute-booking-btn:hover {
+    background: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* Sidebar Panel Elements */
+.summary-sticky-card {
+    background: #fff;
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+}
+
+.summary-sticky-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 15px 0;
+    color: var(--premium-dark);
+}
+
+.summary-divider {
+    border: none;
+    border-top: 1px solid var(--panel-border);
+    margin: 0 0 20px 0;
+}
+
+.summary-data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    font-size: 14px;
+}
+
+.summary-data-row .label-text { color: var(--text-muted); }
+.summary-data-row .value-text { font-weight: 600; color: var(--text-primary); }
+.type-badge { background: #edf2f7; padding: 3px 10px; border-radius: 50px; font-size: 12px !important; }
+
+.highlight-row {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 2px dashed var(--panel-border);
+}
+.highlight-row .label-text { font-weight: 700; color: var(--premium-dark); font-size: 16px; }
+.price-main { font-size: 24px; font-weight: 800; color: #2ecc71 !important; }
+
+.guarantee-notice {
+    display: flex;
+    gap: 10px;
+    background: var(--soft-bg);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 20px;
+    border-left: 3px solid #cbd5e0;
+}
+.guarantee-notice i { color: var(--text-muted); font-size: 14px; margin-top: 2px; }
+.guarantee-notice p { margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+/* Trust Feature Stack Box */
+.trust-features-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.trust-feature-item { display: flex; align-items: flex-start; gap: 15px; }
+.trust-icon-box {
+    background: #fff; border: 1px solid var(--panel-border);
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: var(--premium-dark); flex-shrink: 0;
+}
+.trust-text h5 { margin: 0 0 3px 0; font-size: 14px; font-weight: 700; color: var(--premium-dark); }
+.trust-text p { margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.4; }
+
+/* Responsive Grid Rules */
+@media(max-width: 991px) { .booking-grid-container { grid-template-columns: 1fr; } }
+@media(max-width: 575px) {
+    .booking-form-panel { padding: 20px; }
+    .form-grid-split { grid-template-columns: 1fr; gap: 0; }
+    .booking-flow-header h2 { font-size: 24px; }
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const radioOptions = document.querySelectorAll('input[name="fleet_class"]');
+    const priceDisplay = document.querySelector('.price-main');
+
+    const pricingChart = {
+        eco: "$4.50 + $1.20/mile",
+        business: "$15.00 + $3.50/mile",
+        suv: "$9.00 + $2.10/mile"
+    };
+
+    function updatePrice() {
+        const selectedValue = document.querySelector('input[name="fleet_class"]:checked').value;
+        priceDisplay.innerText = pricingChart[selectedValue];
+    }
+
+    radioOptions.forEach(radio => {
+        radio.addEventListener('change', updatePrice);
+    });
+
+    updatePrice();
+});
+</script>
+
+<?php get_footer(); ?>
